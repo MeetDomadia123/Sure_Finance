@@ -2,6 +2,9 @@
 
 Lightweight PDF statement parser and viewer. Extracts key fields from credit card statements and shows them in a simple UI.
 
+## UI
+![alt text](file:///var/folders/r7/52ysptsx2ps1s8vrxg15ym440000gn/T/TemporaryItems/NSIRD_screencaptureui_C9zSUZ/Screenshot%202025-10-23%20at%206.01.25%E2%80%AFPM.png)
+
 ## Features
 - PDF parsing in-browser (no upload to server)
 - Bank-specific parsers:
