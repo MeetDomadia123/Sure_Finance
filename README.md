@@ -5,9 +5,11 @@ Lightweight PDF statement parser and viewer. Extracts key fields from credit car
 ## Features
 - PDF parsing in-browser (no upload to server)
 - Bank-specific parsers:
-  - HDFC: name, card ending, statement period, payment due date, total amount due
+  - HDFC: name, card ending, statement period, payment due date, total amount due,basic transactions
   - ICICI: name, card ending, statement date/period, payment due date, total amount due, basic transactions
-  - SBI: name (savings/summary PDFs and CC headers)
+  - SBI: name, card ending, statement period, payment due date, total amount due,basic transactions
+  - Axis: name, card ending, statement period, payment due date, total amount due,basic transactions
+  - American Express: name, card ending, statement period, payment due date, total amount due,basic transactions
 - Raw JSON view for debugging
 
 ## Getting started
@@ -15,16 +17,10 @@ Lightweight PDF statement parser and viewer. Extracts key fields from credit car
 
 Install and run
 - npm install
-- npm run dev (or npm run serve)
-- Open http://localhost:5173 (or the printed URL)
+- npm run serve
+- Open http://localhost:5173 or http://localhost:3000(or the printed URL)
 
-Build
-- npm run build
-- npm run preview
 
-## Environment
-- cp .env.example .env
-- Edit values as needed (no secrets required for local use)
 
 ## Project structure (short)
 - src/
@@ -59,21 +55,9 @@ Build
 3. Register the bank in the UI selector and router (if applicable)
 4. Keep all bank samples in a local, ignored folder (samples/, statements/)
 
-Tips
-- Prefer label-on-same-line, then next-line windows
-- Guard against headers, dotted initials, digits in names, and address-like lines
-- Normalize whitespace and Unicode before parsing
-
-## Troubleshooting
-- If a field is blank:
-  - Toggle Show raw JSON and verify extracted text near the label
-  - Grep around anchors (example):
-    - grep -n -A8 -B8 -i "statement date" outputs/<file>.txt
-    - grep -n -A8 -B8 -i "total amount due" outputs/<file>.txt
-- Hard refresh the app after parser changes (Shift+Reload)
 
 ## Privacy
-- Do not commit personal PDFs or dumps
+- Did not commit personal PDFs or dumps
 - .gitignore excludes outputs/, samples/, statements/, data/, private/, and all .pdf/.txt inside them
 - Use .env.example for placeholders only
 
