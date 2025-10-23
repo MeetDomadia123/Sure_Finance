@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Bank Statement Parser</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: dark;
+        --bg-color-dark: #1a1a2e; /* Deeper dark background */
+        --card-bg-dark: #1f2038; /* Slightly lighter card background */
+        --border-color-dark: #3a3b50; /* Softer border */
+        --text-color-dark: #e0e0f0; /* Lighter, more vibrant text */
+        --muted-text-dark: #a0a0b0; /* Softer muted text */
+        --primary-blue: #6c63ff; /* A nice vibrant blue/purple */
+        --primary-blue-hover: #8e88ff; /* Lighter on hover */
+        --input-bg-dark: #2a2b42; /* Input background */
+        --input-border-dark: #4a4b60; /* Input border */
+        --table-header-bg-dark: #1a1b30; /* Table header background */
+        --table-row-hover-dark: #2a2b42; /* Table row hover */
+        --error-color: #ff6b6b; /* Red for errors */
+      }
+
+      body {
+        font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Arial,
+          sans-serif;
+        margin: 0;
+        padding: 40px;
+        max-width: 1200px;
+        background: var(--bg-color-dark);
+        color: var(--text-color-dark);
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+
+      h2,
+      h3 {
+        color: var(--text-color-dark);
+        font-weight: 600;
+        margin-bottom: 20px;
+      }
+
+      .container {
+        max-width: 900px;
+        margin: 0 auto;
+        padding: 30px;
+        background: var(--card-bg-dark);
+        border-radius: 12px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      }
+
+      form {
+        margin-bottom: 40px;
+        padding-bottom: 30px;
+        border-bottom: 1px solid var(--border-color-dark);
+      }
+
+      .form-group {
+        margin-bottom: 20px;
+      }
+
+      label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        color: var(--muted-text-dark);
+      }
+
+      select,
+      input[type='file'],
+      button {
+        padding: 12px 18px;
+        border-radius: 8px;
+        font-size: 16px;
+        color: var(--text-color-dark);
+        background: var(--input-bg-dark);
+        border: 1px solid var(--input-border-dark);
+        transition: all 0.2s ease-in-out;
+      }
+
+      select {
+        width: 200px;
+        appearance: none; /* Remove default arrow */
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%23a0a0b0'%3E%3Cpath d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+        cursor: pointer;
+      }
+
+      select:focus,
+      input[type='file']:focus,
+      button:focus {
+        outline: none;
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.3);
+      }
+
+      /* Style for file input container to make it look like a button */
+      .file-input-wrapper {
+        display: inline-block;
+        position: relative;
+        overflow: hidden;
+        margin-right: 15px;
+        cursor: pointer;
+        background: var(--input-bg-dark);
+        border: 1px solid var(--input-border-dark);
+        border-radius: 8px;
+        padding: 12px 18px;
+      }
+
+      .file-input-wrapper input[type='file'] {
+        position: absolute;
+        left: 0;
+        top: 0;
+        opacity: 0;
+        cursor: pointer;
+        width: 100%;
+        height: 100%;
+      }
+
+      .file-input-wrapper span {
+        color: var(--text-color-dark);
+        font-size: 16px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: block;
+        max-width: 250px; /* Limit display width for file name */
+      }
+      .file-input-wrapper:hover {
+        border-color: var(--primary-blue);
+        box-shadow: 0 0 0 3px rgba(108, 99, 255, 0.1);
+      }
+
+      button {
+        background: var(--primary-blue);
+        border: 1px solid var(--primary-blue);
+        cursor: pointer;
+        margin-right: 15px;
+        font-weight: 500;
+      }
+
+      button:hover {
+        background: var(--primary-blue-hover);
+        border-color: var(--primary-blue-hover);
+      }
+
+      .toggle {
+        display: inline-flex;
+        align-items: center;
+        margin-left: 20px;
+        color: var(--muted-text-dark);
+        font-size: 15px;
+        cursor: pointer;
+      }
+
+      .toggle input[type='checkbox'] {
+        margin-right: 8px;
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary-blue); /* Style checkbox itself */
+      }
+
+      .status-message {
+        margin-top: 20px;
+        font-size: 14px;
+        color: var(--muted-text-dark);
+        min-height: 20px; /* Prevent layout shift */
+      }
+
+      .summary-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+      }
+
+      .card {
+        background: var(--input-bg-dark);
+        color: var(--text-color-dark);
+        border: 1px solid var(--border-color-dark);
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+      .card .label {
+        font-size: 14px;
+        opacity: 0.8;
+        margin-bottom: 6px;
+        color: var(--muted-text-dark);
+      }
+      .card .value {
+        font-size: 24px;
+        font-weight: 600;
+        word-break: break-word;
+        color: var(--text-color-dark);
+      }
+
+      .scrollable-table {
+        max-height: 400px;
+        overflow-y: auto;
+        background: var(--input-bg-dark);
+        border-radius: 10px;
+        border: 1px solid var(--border-color-dark);
+        margin-top: 20px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        color: var(--text-color-dark);
+        font-size: 15px;
+      }
+
+      th,
+      td {
+        text-align: left;
+        padding: 14px 18px;
+        border-bottom: 1px solid var(--border-color-dark);
+      }
+
+      th {
+        position: sticky;
+        top: 0;
+        background: var(--table-header-bg-dark);
+        font-weight: 600;
+        color: var(--muted-text-dark);
+        text-transform: uppercase;
+        font-size: 13px;
+        letter-spacing: 0.5px;
+      }
+
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+
+      tbody tr:hover {
+        background: var(--table-row-hover-dark);
+      }
+
+      pre {
+        background: var(--input-bg-dark);
+        color: #d7e3ff;
+        padding: 20px;
+        border-radius: 10px;
+        overflow: auto;
+        min-height: 100px;
+        display: none;
+        border: 1px solid var(--border-color-dark);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-top: 20px;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .loading-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        backdrop-filter: blur(3px);
+      }
+      .loading-overlay.show {
+        display: flex;
+      }
+      .loading-box {
+        background: var(--card-bg-dark);
+        color: var(--text-color-dark);
+        border: 1px solid var(--border-color-dark);
+        padding: 25px 30px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        box-shadow: 0 15px 45px rgba(0, 0, 0, 0.4);
+      }
+      .spinner {
+        width: 30px;
+        height: 30px;
+        border: 4px solid var(--primary-blue);
+        border-top-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .loading-box > div > div:first-child {
+        font-weight: 600;
+        font-size: 18px;
+        margin-bottom: 5px;
+      }
+      .loading-box .muted {
+        font-size: 13px;
+        color: var(--muted-text-dark);
+      }
+
+      /* Responsive adjustments */
+      @media (max-width: 768px) {
+        body {
+          padding: 20px;
+        }
+        .container {
+          padding: 20px;
+        }
+        .summary-grid {
+          grid-template-columns: 1fr; /* Stack cards on small screens */
+        }
+        .file-input-wrapper {
+          margin-bottom: 15px; /* Add space below file input */
+        }
+        select,
+        button,
+        .toggle {
+          width: 100%;
+          margin-bottom: 15px;
+        }
+        .file-input-wrapper span {
+            max-width: 100%; /* Adjust for full width */
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Bank Statement Parser</h2>
+
+      <form id="form">
+        <div class="form-group">
+          <label for="bank">Bank:</label>
+          <select name="bank" id="bank">
+            <option value="axis">Axis</option>
+            <option value="hdfc">HDFC</option>
+            <option value="sbi">SBI</option>
+            <option value="icici">ICICI</option>
+            <option value="amex">American Express</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="pdf">Upload Statement:</label>
+          <div class="file-input-wrapper">
+            <input
+              type="file"
+              id="pdf"
+              name="pdf"
+              accept="application/pdf"
+              required
+            />
+            <span id="file-name">Choose file</span>
+          </div>
+          <button id="parseBtn" type="submit">Parse</button>
+          <label class="toggle">
+            <input id="rawToggle" type="checkbox" /> Show raw JSON
+          </label>
+          <div id="status" class="status-message"></div>
+        </div>
+      </form>
+
+      <h3>Analysis Result</h3>
+
+      <div id="summary" class="summary-grid">
+        <!-- Summary cards will be rendered here -->
+        <div class="card">
+          <div class="label">Card holder name</div>
+          <div class="value">—</div>
+        </div>
+        <div class="card">
+          <div class="label">Card ending</div>
+          <div class="value">—</div>
+        </div>
+        <div class="card">
+          <div class="label">Statement period</div>
+          <div class="value">— → —</div>
+        </div>
+        <div class="card">
+          <div class="label">Payment due date</div>
+          <div class="value">—</div>
+        </div>
+        <div class="card">
+          <div class="label">Total amount due</div>
+          <div class="value">—</div>
+        </div>
+      </div>
+
+      <div class="scrollable-table">
+        <table id="txTable" style="display: none">
+          <thead>
+            <tr>
+              <th style="width: 120px">Date</th>
+              <th>Description</th>
+              <th style="width: 140px; text-align: right">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Transactions will be rendered here -->
+          </tbody>
+        </table>
+      </div>
+
+      <pre id="raw">Submit a PDF...</pre>
+
+      <div id="loading" class="loading-overlay" aria-hidden="true">
+        <div class="loading-box">
+          <div class="spinner" aria-label="Loading"></div>
+          <div>
+            <div id="loadingText">Parsing…</div>
+            <div class="muted">Please wait, this may take a moment.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const form = document.getElementById("form");
+      const raw = document.getElementById("raw");
+      const statusEl = document.getElementById("status");
+      const loading = document.getElementById("loading");
+      const loadingText = document.getElementById("loadingText");
+      const parseBtn = document.getElementById("parseBtn");
+      const summary = document.getElementById("summary");
+      const txTable = document.getElementById("txTable");
+      const tbody = txTable.querySelector("tbody");
+      const rawToggle = document.getElementById("rawToggle");
+      const pdfInput = document.getElementById("pdf");
+      const fileNameSpan = document.getElementById("file-name");
+
+      rawToggle.addEventListener("change", () => {
+        raw.style.display = rawToggle.checked ? "block" : "none";
+      });
+
+      pdfInput.addEventListener("change", () => {
+        if (pdfInput.files.length > 0) {
+          fileNameSpan.textContent = pdfInput.files[0].name;
+        } else {
+          fileNameSpan.textContent = "Choose file";
+        }
+      });
+
+      function setLoading(on, msg) {
+        loading.classList.toggle("show", !!on);
+        loadingText.textContent = msg || "Parsing…";
+        statusEl.textContent = on ? msg || "Processing…" : "";
+        Array.from(form.elements).forEach((el) => (el.disabled = !!on));
+        // Re-enable file input wrapper specifically if it has a custom style preventing 'disabled' from working visually
+        if (!on) {
+            document.querySelector('.file-input-wrapper').style.pointerEvents = 'auto';
+        } else {
+            document.querySelector('.file-input-wrapper').style.pointerEvents = 'none';
+        }
+        if (!on) parseBtn.blur();
+      }
+      function fmtINR(n) {
+        if (n == null || Number.isNaN(n)) return "—";
+        const sign = n < 0 ? "-" : "";
+        const abs = Math.abs(n);
+        return (
+          sign +
+          abs.toLocaleString("en-IN", {
+            style: "currency",
+            currency: "INR",
+            maximumFractionDigits: 2,
+          })
+        );
+      }
+      function textOrDash(s) {
+        return s ? s : "—";
+      }
+      function escapeHTML(s) {
+        return String(s).replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','"':'&quot;',"'":'&#39;','>':'&gt;'}[c]));
+      }
+      function safeTextOrDash(s) {
+        return s ? escapeHTML(String(s)) : "—";
+      }
+      function renderSummary(data) {
+        const p = data?.parsed || {};
+        summary.innerHTML = `
+        <div class="card"><div class="label">Card holder name</div><div class="value">${safeTextOrDash(p.cardOwnerName)}</div></div>
+        <div class="card"><div class="label">Card ending</div><div class="value">${textOrDash(p.cardEnding)}</div></div>
+        <div class="card"><div class="label">Statement period</div><div class="value">${textOrDash(p.statementPeriod?.from)} → ${textOrDash(p.statementPeriod?.to)}</div></div>
+        <div class="card"><div class="label">Payment due date</div><div class="value">${textOrDash(p.paymentDueDate)}</div></div>
+        <div class="card"><div class="label">Total amount due</div><div class="value">${fmtINR(p.totalAmountDue)}</div></div>
+      `;
+      }
+      function renderTx(p) {
+        const tx = Array.isArray(p?.transactions) ? p.transactions : [];
+        const table = document.getElementById("txTable");
+        const tbody = table.querySelector("tbody");
+        if (!tx.length) {
+          table.style.display = "none";
+          tbody.innerHTML = "";
+          return;
+        }
+        table.style.display = "table";
+        const rows = tx.map(t => {
+          const type = (t.amount ?? 0) < 0 ? "Dr" : "Cr";
+          const abs = Math.abs(Number(t.amount ?? 0));
+          return `<tr>
+            <td>${textOrDash(t.date)}</td>
+            <td>${(t.description ?? "").replace(/</g,"&lt;")}</td>
+            <td style="text-align:right">${abs.toLocaleString("en-IN", { style: "currency", currency: "INR" })} ${type}</td>
+          </tr>`;
+        }).join("");
+        tbody.innerHTML = rows;
+      }
+      async function postParse(fd) {
+        const res = await fetch("/api/parse", { method: "POST", body: fd });
+        if (!res.ok) throw new Error(await res.text());
+        return res.json();
+      }
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const file = document.getElementById("pdf").files[0];
+        if (!file) {
+          statusEl.textContent = "Please choose a PDF first.";
+          statusEl.style.color = '#ff6b6b'; // Indicate error
+          raw.textContent = "Please choose a PDF first."; // Still update raw if visible
+          return;
+        }
+        statusEl.style.color = ''; // Reset status color
+        const bank = document.getElementById("bank").value;
+        const fd = new FormData();
+        fd.append("bank", bank);
+        fd.append("pdf", file);
+        try {
+          setLoading(true, "Uploading and parsing…");
+          const data = await postParse(fd);
+          raw.textContent = JSON.stringify(data, null, 2);
+          renderSummary(data);
+          renderTx(data.parsed);
+        } catch (err) {
+          const errorMessage = String(err.message || err);
+          raw.textContent = JSON.stringify({ error: errorMessage }, null, 2);
+          summary.innerHTML = "";
+          tbody.innerHTML = "";
+          txTable.style.display = "none";
+          statusEl.textContent = `Error: ${errorMessage}`;
+          statusEl.style.color = '#ff6b6b';
+        } finally {
+          setLoading(false);
+        }
+      });
+    </script>
+  </body>
+</html>
